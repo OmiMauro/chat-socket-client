@@ -10,13 +10,17 @@ import {
   IconButton,
   OutlinedInput,
   Card,
+  InputLabel,
 } from '@mui/material'
 
 import { Send } from '@mui/icons-material'
 
 const ChatWindow = () => {
   const [socket, setSocket] = useState(null)
-
+  const [message, setMessage] = useState('')
+  const [chat, setChat] = useState([])
+  const [typing, setTyping] = useState(false)
+  const [typingTimeout, setTypingTimeout] = useState(null)
   useEffect(() => {
     setSocket(io('http://localhost:5000'))
   }, [])
@@ -26,19 +30,25 @@ const ChatWindow = () => {
     socket.on('message-from-server', (data) => {
       setChat((prev) => [...prev, { message: data.message, received: true }])
     })
+    socket.on('typing-from-server', () => {
+      setTyping(true)
+    })
+    socket.on('typing-from-server-end', () => {
+      setTyping(false)
+    })
   }, [socket])
-  const [message, setMessage] = useState('')
-  const [chat, setChat] = useState([])
 
   const handleForm = (e) => {
     e.preventDefault()
     socket.emit('send-message', { message })
     setChat((prev) => [...prev, { message, received: false }])
-
     setMessage('')
   }
   const handleChange = (e) => {
     setMessage(e.target.value)
+    socket.emit('typing-started')
+    if (typingTimeout) clearTimeout(typingTimeout)
+    setTypingTimeout(setTimeout(() => socket.emit('typing-end'), 4000))
   }
 
   return (
@@ -65,7 +75,14 @@ const ChatWindow = () => {
           ))}
         </Box>
         <Box component="form" onSubmit={handleForm}>
+          {typing && (
+            <InputLabel sx={{ color: 'white' }} shrink htmlFor="message-input">
+              Typing...
+            </InputLabel>
+          )}
+
           <OutlinedInput
+            id="message-input"
             sx={{ color: 'black', backgroundColor: 'white', width: '100%' }}
             label="Ingrese su mensaje"
             size="small"
