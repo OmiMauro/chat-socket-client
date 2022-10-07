@@ -9,9 +9,11 @@ import {
   InputAdornment,
   IconButton,
   OutlinedInput,
+  Card,
 } from '@mui/material'
 
 import { Send } from '@mui/icons-material'
+
 const ChatWindow = () => {
   const [socket, setSocket] = useState(null)
 
@@ -22,15 +24,17 @@ const ChatWindow = () => {
   useEffect(() => {
     if (!socket) return
     socket.on('message-from-server', (data) => {
-      setChat((prev) => [...prev, data])
+      setChat((prev) => [...prev, { message: data.message, received: true }])
     })
   }, [socket])
-
   const [message, setMessage] = useState('')
   const [chat, setChat] = useState([])
+
   const handleForm = (e) => {
     e.preventDefault()
     socket.emit('send-message', { message })
+    setChat((prev) => [...prev, { message, received: false }])
+
     setMessage('')
   }
   const handleChange = (e) => {
@@ -38,35 +42,48 @@ const ChatWindow = () => {
   }
 
   return (
-    <>
-      <Box component="form" onSubmit={handleForm}>
-        {/* <TextField></TextField>  */}
-        <OutlinedInput
-          label="Ingrese su mensaje"
-          size="small"
-          variant="standard"
-          onChange={handleChange}
-          value={message}
-          placeholder="Ingrese su mensaje"
-          endAdornment={
-            <InputAdornment position="end">
-              <IconButton type="submit" edge="end">
-                <Send />
-              </IconButton>
-            </InputAdornment>
-          }
-        ></OutlinedInput>
-      </Box>
-      <Box>
-        {chat?.map((item, index) => {
-          return (
-            <Typography key={index} sx={{ marginBottom: 5 }}>
-              {item.message}
+    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Card
+        sx={{
+          padding: 5,
+          marginTop: 10,
+          width: '60%',
+          backgroundColor: 'gray',
+        }}
+      >
+        <Box sx={{ marginBottom: 5 }}>
+          {chat?.map((data, index) => (
+            <Typography
+              key={index}
+              sx={{
+                marginBottom: 5,
+                textAlign: data.received ? 'left' : 'right',
+              }}
+            >
+              {data.message}
             </Typography>
-          )
-        })}
-      </Box>
-    </>
+          ))}
+        </Box>
+        <Box component="form" onSubmit={handleForm}>
+          <OutlinedInput
+            sx={{ color: 'black', backgroundColor: 'white', width: '100%' }}
+            label="Ingrese su mensaje"
+            size="small"
+            variant="standard"
+            onChange={handleChange}
+            value={message}
+            placeholder="Ingrese su mensaje"
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton type="submit" edge="end">
+                  <Send />
+                </IconButton>
+              </InputAdornment>
+            }
+          ></OutlinedInput>
+        </Box>
+      </Card>
+    </Box>
   )
 }
 
