@@ -7,6 +7,7 @@ import {
   OutlinedInput,
   Card,
   InputLabel,
+  Button,
 } from '@mui/material'
 
 import { Send } from '@mui/icons-material'
@@ -48,7 +49,9 @@ const ChatWindow = () => {
       setTimeout(() => socket.emit('typing-end', { roomId }), 4000)
     )
   }
-
+  const deleteRoom = async () => {
+    socket.emit('room-removed', { roomId })
+  }
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
       <Card
@@ -59,7 +62,19 @@ const ChatWindow = () => {
           backgroundColor: 'gray',
         }}
       >
-        <Typography>Chat with: {roomId} </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          {roomId && <Typography>Chat with: {roomId} </Typography>}
+          {roomId && (
+            <Button
+              onClick={deleteRoom}
+              size="smail"
+              variant="text"
+              color="secondary"
+            >
+              Delete Room
+            </Button>
+          )}
+        </Box>
 
         <Box sx={{ marginBottom: 5 }}>
           {chat?.map((data, index) => (
