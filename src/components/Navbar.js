@@ -18,6 +18,7 @@ const Navbar = ({ socket, userId, setUserId }) => {
     }
     fetchRooms()
   }, [])
+
   const [rooms, setRooms] = useState([])
 
   const navigate = useNavigate()
@@ -25,15 +26,17 @@ const Navbar = ({ socket, userId, setUserId }) => {
   const createNewRoom = () => {
     const roomId = uuidv4()
     navigate(`/room/${roomId}`)
-    socket.emit('new-room-created', { roomId })
-    socket.emit('new-room-created', roomId)
-    setRooms([...rooms, roomId])
+    socket.emit('new-room-created', { roomId, userId })
+    setRooms([...rooms, { roomId }])
   }
 
   useEffect(() => {
     if (!socket) return
-    socket.on('new-room-created', ({ roomId }) => {
-      setRooms([...rooms, roomId])
+    socket.on('new-room-created', ({ room }) => {
+      setRooms([...rooms, room])
+    })
+    socket.on('room-removed', ({ roomId }) => {
+       setRooms(rooms.filter((room) => room.roomId !== roomId)) */
     })
   }, [socket])
 
@@ -85,7 +88,6 @@ const Navbar = ({ socket, userId, setUserId }) => {
           New Room
         </Button>
         <Box>
-          {console.log(userId)}
           {!userId && <Button onClick={login}>Login</Button>}
           {userId && <Button onClick={logout}>Logout</Button>}
         </Box>
