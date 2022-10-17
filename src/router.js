@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import App from './App'
-import ChatWindow from './components/ChatWindow'
+import Room from './pages/Room'
 import Home from './pages/Home'
 
 const router = createBrowserRouter([
@@ -14,12 +14,8 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: '/chats',
-        element: <ChatWindow />,
-      },
-      {
         path: '/room/:roomId',
-        element: <ChatWindow />,
+        element: <Room />,
       },
     ],
   },
