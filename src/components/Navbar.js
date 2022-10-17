@@ -6,15 +6,24 @@ import {
   useNavigate,
   useOutletContext,
 } from 'react-router-dom'
-import { v4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import { useEffect, useState } from 'react'
-const Navbar = ({ socket }) => {
+import Cookies from 'js-cookies'
+const Navbar = ({ socket, userId, setUserId }) => {
+  useEffect(() => {
+    async function fetchRooms() {
+      const response = await fetch('http://localhost:5000/rooms')
+      const { rooms } = await response.json()
+      setRooms(rooms)
+    }
+    fetchRooms()
+  }, [])
   const [rooms, setRooms] = useState([])
 
   const navigate = useNavigate()
 
   const createNewRoom = () => {
-    const roomId = v4()
+    const roomId = uuidv4()
     navigate(`/room/${roomId}`)
     socket.emit('new-room-created', { roomId })
     socket.emit('new-room-created', roomId)
@@ -28,6 +37,17 @@ const Navbar = ({ socket }) => {
     })
   }, [socket])
 
+  const login = () => {
+    const _userId = uuidv4()
+    setUserId(_userId)
+    Cookies.setItem('userId', _userId)
+    navigate('/')
+  }
+  const logout = () => {
+    Cookies.removeItem('userId')
+    setUserId(null)
+    navigate('/')
+  }
   return (
     <Card sx={{ marginTop: '10px', backgroundColor: 'gray' }} raised>
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -40,21 +60,23 @@ const Navbar = ({ socket }) => {
               Home
             </Button>
           </Link>
+
+          {rooms.map((room) => (
+            <Link
+              key={room._id}
+              style={{ color: 'white', textDecoration: 'none' }}
+              to={`/room/${room.roomId}`}
+            >
+              <Button
+                sx={{ color: 'white', textDecoration: 'none' }}
+                variant="text"
+              >
+                {room.name}
+              </Button>
+            </Link>
+          ))}
         </Box>
 
-        {rooms.map((room) => (
-          <Link
-            style={{ color: 'white', textDecoration: 'none' }}
-            to={`/room/${room}`}
-          >
-            <Button
-              sx={{ color: 'white', textDecoration: 'none' }}
-              variant="text"
-            >
-              {room}
-            </Button>
-          </Link>
-        ))}
         <Button
           sx={{ color: 'white', textDecoration: 'none' }}
           onClick={createNewRoom}
@@ -62,6 +84,11 @@ const Navbar = ({ socket }) => {
         >
           New Room
         </Button>
+        <Box>
+          {console.log(userId)}
+          {!userId && <Button onClick={login}>Login</Button>}
+          {userId && <Button onClick={logout}>Logout</Button>}
+        </Box>
       </Box>
     </Card>
   )
