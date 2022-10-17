@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react'
-import { io } from 'socket.io-client'
 import {
-  Button,
-  TextField,
   Box,
-  Container,
   Typography,
   InputAdornment,
   IconButton,
@@ -14,16 +10,16 @@ import {
 } from '@mui/material'
 
 import { Send } from '@mui/icons-material'
+import { useOutletContext, useParams } from 'react-router-dom'
 
 const ChatWindow = () => {
-  const [socket, setSocket] = useState(null)
+  const { socket } = useOutletContext()
+  const { roomId } = useParams()
+
   const [message, setMessage] = useState('')
   const [chat, setChat] = useState([])
   const [typing, setTyping] = useState(false)
   const [typingTimeout, setTypingTimeout] = useState(null)
-  useEffect(() => {
-    setSocket(io('http://localhost:5000'))
-  }, [])
 
   useEffect(() => {
     if (!socket) return
@@ -40,15 +36,17 @@ const ChatWindow = () => {
 
   const handleForm = (e) => {
     e.preventDefault()
-    socket.emit('send-message', { message })
+    socket.emit('send-message', { message, roomId })
     setChat((prev) => [...prev, { message, received: false }])
     setMessage('')
   }
   const handleChange = (e) => {
     setMessage(e.target.value)
-    socket.emit('typing-started')
+    socket.emit('typing-started', { roomId })
     if (typingTimeout) clearTimeout(typingTimeout)
-    setTypingTimeout(setTimeout(() => socket.emit('typing-end'), 4000))
+    setTypingTimeout(
+      setTimeout(() => socket.emit('typing-end', { roomId }), 4000)
+    )
   }
 
   return (
@@ -61,6 +59,8 @@ const ChatWindow = () => {
           backgroundColor: 'gray',
         }}
       >
+        <Typography>Chat with: {roomId} </Typography>
+
         <Box sx={{ marginBottom: 5 }}>
           {chat?.map((data, index) => (
             <Typography
