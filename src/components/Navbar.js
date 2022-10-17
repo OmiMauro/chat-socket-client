@@ -1,21 +1,27 @@
 import { Card, Button, Typography } from '@mui/material'
-import { Container } from '@mui/system'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Navigate, Outlet } from 'react-router-dom'
+import { v4 } from 'uuid'
+import { useEffect } from 'react'
+const Navbar = ({ socket }) => {
+  let roomId
+  const createNewRoom = () => {
+    roomId = v4()
+    Navigate(`/room/${roomId}`)
+    socket.emit('new-room-created', { roomId })
+  }
 
-const Navbar = () => {
+  useEffect(() => {
+    if (!socket) return
+  }, [socket])
   return (
     <Card sx={{ marginTop: '10px', backgroundColor: 'gray' }} raised>
-      <Link to="/">
+      <Link style={{ textDecoration: 'none' }} to="/">
         <Button sx={{ color: 'white', textDecoration: 'none' }} variant="text">
           Home
         </Button>
       </Link>
-      <Link to="/chats">
-        <Button sx={{ color: 'white', textDecoration: 'none' }} variant="text">
-          Chats
-        </Button>
-      </Link>
-      <Link to="/room/:roomId">
+
+      <Link style={{ textDecoration: 'none' }} to={`/room/${roomId}`}>
         <Button sx={{ color: 'white', textDecoration: 'none' }} variant="text">
           Salas
         </Button>
